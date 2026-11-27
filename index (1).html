@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apartment Maintenance & Complaint Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#f3f5f9] text-slate-800 min-h-screen flex flex-col font-sans">
+  <!-- Top Navy Header Banner -->
+  <header class="bg-[#1b3b82] text-white py-5 px-4 shadow-md text-center">
+    <h1 class="text-2xl md:text-3xl font-bold tracking-tight">
+      🏢 Apartment Maintenance &amp; Complaint Management System
+    </h1>
+    <p class="text-blue-200 text-xs md:text-sm mt-1">
+      Built with Object-Oriented JavaScript
+    </p>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl w-full mx-auto px-4 py-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Left Column: Add Resident + Resident Directory -->
+    <section class="lg:col-span-4 space-y-6">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Add Resident</h2>
+        <form id="residentForm" class="space-y-3">
+          <div>
+            <input type="text" id="resName" placeholder="Full Name" required
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div>
+            <input type="text" id="flatNo" placeholder="Flat Number (e.g. A-101)" required
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div>
+            <input type="text" id="phone" placeholder="Phone / Email" required
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="blockName" placeholder="Block / Wing" required
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" />
+            <select id="occupancyType"
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <option value="Owner">Owner</option>
+              <option value="Tenant">Tenant</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" min="0" id="monthlyFee" placeholder="Monthly Fee (₹)" required
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" />
+            <select id="paymentStatus"
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <option value="Paid">Dues Paid</option>
+              <option value="Pending">Dues Pending</option>
+            </select>
+          </div>
+          <button type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-2.5 rounded-lg transition cursor-pointer">
+            Add Resident
+          </button>
+          <p id="feedbackMsg" class="text-xs text-emerald-600 font-medium hidden">Resident added!</p>
+        </form>
+
+        <!-- Residents List -->
+        <div class="mt-6 pt-5 border-t border-slate-200">
+          <h3 class="text-base font-bold text-slate-800 mb-3">Residents</h3>
+          <input type="text" id="searchInput" placeholder="Search by name or flat no..."
+            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          <div id="residentList" class="space-y-2 max-h-72 overflow-y-auto"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Selected Resident Profile & Complaint Records -->
+    <section class="lg:col-span-8">
+      <div id="detailCard" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 min-h-[480px]">
+        <!-- Populated dynamically via OOP JS -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center text-xs text-slate-400 py-4">
+    OOP concepts: Abstraction &bull; Encapsulation &bull; Inheritance &bull; Polymorphism &bull; Composition
+  </footer>
+
+  <script>
+    // 1. Base Class: Person
+    class Person {
+      constructor(name, phone) {
+        this.name = name;
+        this.phone = phone;
+      }
+    }
+
+    // 2. Inheritance: Resident extends Person
+    class Resident extends Person {
+      constructor(name, phone, flatNo, blockName, occupancyType, monthlyFee, paymentStatus, complaints = []) {
+        super(name, phone);
+        this.flatNo = flatNo;
+        this.blockName = blockName;
+        this.occupancyType = occupancyType;
+        this.monthlyFee = parseFloat(monthlyFee) || 0;
+        this.paymentStatus = paymentStatus;
+        this.complaints = complaints;
+      }
+
+      getPendingDues() {
+        return this.paymentStatus === "Paid" ? 0 : this.monthlyFee;
+      }
+
+      getOpenComplaintsCount() {
+        return this.complaints.filter(c => c.status !== "Resolved").length;
+      }
+
+      getResolvedComplaintsCount() {
+        return this.complaints.filter(c => c.status === "Resolved").length;
+      }
+    }
+
+    // 3. Base Class: MaintenanceTicket
+    class MaintenanceTicket {
+      constructor(category, description, priority) {
+        this.category = category;
+        this.description = description;
+        this.priority = priority;
+      }
+
+      estimatedResolution() {
+        return "48 Hours";
+      }
+    }
+
+    // 4. Inheritance & Polymorphism: ComplaintRecord extends MaintenanceTicket
+    class ComplaintRecord extends MaintenanceTicket {
+      constructor(category, description, priority, status = "Open", loggedDate = new Date().toLocaleDateString()) {
+        super(category, description, priority);
+        this.status = status;
+        this.loggedDate = loggedDate;
+      }
+
+      estimatedResolution() {
+        const sla = { High: "4 Hours", Medium: "24 Hours", Low: "72 Hours" };
+        return sla[this.priority] || "24 Hours";
+      }
+    }
+
+    // 5. System Controller: ApartmentSystem (Composition)
+    class ApartmentSystem {
+      constructor() {
+        this.storageKey = "apartment_maintenance_records_v1";
+        this.residents = this.load();
+        if (this.residents.length === 0) {
+          this.seedSampleData();
+        }
+        this.selectedFlat = this.residents[0].flatNo;
+      }
+
+      seedSampleData() {
+        const r1 = new Resident(
+          "Ananya Krishnan",
+          "9876543210",
+          "A-101",
+          "Block A",
+          "Owner",
+          2500,
+          "Paid",
+          [
+            new ComplaintRecord("Plumbing", "Kitchen sink pipe leakage", "High", "Resolved", "24 Nov 2026"),
+            new ComplaintRecord("Electrical", "Corridor LED light flickering", "Low", "In Progress", "26 Nov 2026")
+          ]
+        );
+        const r2 = new Resident(
+          "Rohan Verma",
+          "9123456780",
+          "B-204",
+          "Block B",
+          "Tenant",
+          2500,
+          "Pending",
+          [
+            new ComplaintRecord("HVAC / AC", "Living room AC water drain blocked", "Medium", "Open", "27 Nov 2026")
+          ]
+        );
+        this.residents = [r1, r2];
+        this.save();
+      }
+
+      save() {
+        localStorage.setItem(this.storageKey, JSON.stringify(this.residents));
+      }
+
+      load() {
+        const raw = localStorage.getItem(this.storageKey);
+        if (!raw) return [];
+        try {
+          const parsed = JSON.parse(raw);
+          return parsed.map(r => new Resident(
+            r.name,
+            r.phone,
+            r.flatNo,
+            r.blockName,
+            r.occupancyType,
+            r.monthlyFee,
+            r.paymentStatus,
+            (r.complaints || []).map(c => new ComplaintRecord(c.category, c.description, c.priority, c.status, c.loggedDate))
+          ));
+        } catch (e) {
+          return [];
+        }
+      }
+
+      addResident(resident) {
+        this.residents.unshift(resident);
+        this.selectedFlat = resident.flatNo;
+        this.save();
+      }
+
+      deleteResident(flatNo) {
+        this.residents = this.residents.filter(r => r.flatNo !== flatNo);
+        this.selectedFlat = this.residents.length > 0 ? this.residents[0].flatNo : null;
+        this.save();
+      }
+
+      addComplaint(flatNo, complaint) {
+        const res = this.residents.find(r => r.flatNo === flatNo);
+        if (res) {
+          res.complaints.push(complaint);
+          this.save();
+        }
+      }
+
+      toggleComplaintStatus(flatNo, index) {
+        const res = this.residents.find(r => r.flatNo === flatNo);
+        if (res && res.complaints[index]) {
+          const order = ["Open", "In Progress", "Resolved"];
+          const next = (order.indexOf(res.complaints[index].status) + 1) % order.length;
+          res.complaints[index].status = order[next];
+          this.save();
+        }
+      }
+
+      togglePaymentStatus(flatNo) {
+        const res = this.residents.find(r => r.flatNo === flatNo);
+        if (res) {
+          res.paymentStatus = res.paymentStatus === "Paid" ? "Pending" : "Paid";
+          this.save();
+        }
+      }
+
+      getSelectedResident() {
+        return this.residents.find(r => r.flatNo === this.selectedFlat) || null;
+      }
+    }
+
+    const app = new ApartmentSystem();
+
+    function renderResidentList() {
+      const listEl = document.getElementById("residentList");
+      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      const filtered = app.residents.filter(r =>
+        r.name.toLowerCase().includes(query) ||
+        r.flatNo.toLowerCase().includes(query) ||
+        r.blockName.toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center">No matching residents found.</p>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(r => {
+        const isSelected = r.flatNo === app.selectedFlat;
+        return `
+          <div onclick="selectResident('${r.flatNo}')"
+            class="p-3 rounded-lg border cursor-pointer transition ${
+              isSelected
+                ? "bg-blue-50 border-blue-400 shadow-xs"
+                : "bg-slate-50 border-slate-200 hover:bg-slate-100"
+            }">
+            <div class="font-bold text-sm text-slate-800">${r.name}</div>
+            <div class="text-xs text-slate-500 mt-0.5">
+              ${r.flatNo} &bull; ${r.blockName} &bull; ${r.occupancyType}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderDetailCard() {
+      const card = document.getElementById("detailCard");
+      const r = app.getSelectedResident();
+
+      if (!r) {
+        card.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-slate-400 py-24">
+            <p class="text-base font-medium">No resident selected</p>
+            <p class="text-xs mt-1">Add a resident on the left to manage maintenance &amp; complaints.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const rowsHtml = r.complaints.length === 0
+        ? `<tr><td colspan="5" class="py-4 text-xs text-slate-400">No complaints logged yet.</td></tr>`
+        : r.complaints.map((c, idx) => `
+            <tr class="border-b border-slate-100 text-xs text-slate-700">
+              <td class="py-2.5 pr-3 font-medium">${c.category}</td>
+              <td class="py-2.5 pr-3 text-slate-600">${c.description}</td>
+              <td class="py-2.5 pr-3">${c.priority} <span class="text-[10px] text-slate-400">(${c.estimatedResolution()})</span></td>
+              <td class="py-2.5 pr-3">
+                <button onclick="cycleStatus('${r.flatNo}', ${idx})" title="Click to update status"
+                  class="px-2 py-0.5 rounded-full text-[11px] font-semibold cursor-pointer ${
+                    c.status === "Resolved"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : c.status === "In Progress"
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-red-100 text-red-700"
+                  }">${c.status}</button>
+              </td>
+              <td class="py-2.5 text-slate-400">${c.loggedDate}</td>
+            </tr>
+          `).join("");
+
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-800">${r.name}</h2>
+            <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+              ${r.occupancyType} &bull; Flat ${r.flatNo}
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="toggleDues('${r.flatNo}')"
+              class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition cursor-pointer">
+              Mark Dues ${r.paymentStatus === "Paid" ? "Pending" : "Paid"}
+            </button>
+            <button onclick="removeResident('${r.flatNo}')"
+              class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition cursor-pointer">
+              Delete Resident
+            </button>
+          </div>
+        </div>
+
+        <!-- Info Pills -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+          <div class="bg-slate-50 border border-slate-100 rounded-lg p-3">
+            <div class="text-[11px] text-slate-400 font-medium">Flat &amp; Block</div>
+            <div class="text-xs font-semibold text-slate-700 mt-0.5">${r.flatNo} (${r.blockName})</div>
+          </div>
+          <div class="bg-slate-50 border border-slate-100 rounded-lg p-3">
+            <div class="text-[11px] text-slate-400 font-medium">Contact</div>
+            <div class="text-xs font-semibold text-slate-700 mt-0.5">${r.phone}</div>
+          </div>
+          <div class="bg-slate-50 border border-slate-100 rounded-lg p-3">
+            <div class="text-[11px] text-slate-400 font-medium">Dues Status</div>
+            <div class="text-xs font-semibold ${r.paymentStatus === "Paid" ? "text-emerald-600" : "text-red-600"} mt-0.5">
+              ${r.paymentStatus}
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Navy KPI Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+          <div class="bg-[#1b3b82] text-white rounded-xl p-3.5">
+            <div class="text-lg font-bold">₹${r.monthlyFee}</div>
+            <div class="text-[11px] text-blue-200 mt-0.5">Monthly Fee</div>
+          </div>
+          <div class="bg-[#1b3b82] text-white rounded-xl p-3.5">
+            <div class="text-lg font-bold">₹${r.getPendingDues()}</div>
+            <div class="text-[11px] text-blue-200 mt-0.5">Pending Dues</div>
+          </div>
+          <div class="bg-[#1b3b82] text-white rounded-xl p-3.5">
+            <div class="text-lg font-bold">${r.getOpenComplaintsCount()}</div>
+            <div class="text-[11px] text-blue-200 mt-0.5">Active Complaints</div>
+          </div>
+          <div class="bg-[#1b3b82] text-white rounded-xl p-3.5">
+            <div class="text-lg font-bold">${r.getResolvedComplaintsCount()}</div>
+            <div class="text-[11px] text-blue-200 mt-0.5">Resolved</div>
+          </div>
+        </div>
+
+        <!-- Complaint Record Section -->
+        <div class="mt-6">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-base font-bold text-slate-800">Complaint &amp; Maintenance Record</h3>
+            <span class="text-[11px] text-slate-400">Click a status badge to update progress</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-100 text-slate-600 text-xs font-semibold">
+                  <th class="py-2 px-2 rounded-l-lg">Category</th>
+                  <th class="py-2 px-2">Issue Description</th>
+                  <th class="py-2 px-2">Priority (SLA)</th>
+                  <th class="py-2 px-2">Status</th>
+                  <th class="py-2 px-2 rounded-r-lg">Date</th>
+                </tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </div>
+
+          <!-- Log Complaint Form -->
+          <form onsubmit="handleAddComplaint(event)" class="mt-4 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <select id="compCategory"
+                class="px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                <option value="Plumbing">Plumbing</option>
+                <option value="Electrical">Electrical</option>
+                <option value="Carpentry">Carpentry</option>
+                <option value="HVAC / AC">HVAC / AC</option>
+                <option value="Housekeeping">Housekeeping</option>
+                <option value="Security / Lift">Security / Lift</option>
+              </select>
+              <input type="text" id="compDesc" placeholder="Issue description" required
+                class="px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              <select id="compPriority"
+                class="px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                <option value="Medium">Medium Priority</option>
+                <option value="High">High Priority</option>
+                <option value="Low">Low Priority</option>
+              </select>
+            </div>
+            <button type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg transition cursor-pointer">
+              Log Complaint Record
+            </button>
+          </form>
+        </div>
+      `;
+    }
+
+    function selectResident(flatNo) {
+      app.selectedFlat = flatNo;
+      renderResidentList();
+      renderDetailCard();
+    }
+
+    function removeResident(flatNo) {
+      app.deleteResident(flatNo);
+      renderResidentList();
+      renderDetailCard();
+    }
+
+    function toggleDues(flatNo) {
+      app.togglePaymentStatus(flatNo);
+      renderDetailCard();
+    }
+
+    function cycleStatus(flatNo, idx) {
+      app.toggleComplaintStatus(flatNo, idx);
+      renderDetailCard();
+    }
+
+    function handleAddComplaint(e) {
+      e.preventDefault();
+      if (!app.selectedFlat) return;
+      const category = document.getElementById("compCategory").value;
+      const desc = document.getElementById("compDesc").value.trim();
+      const priority = document.getElementById("compPriority").value;
+      if (!desc) return;
+      app.addComplaint(app.selectedFlat, new ComplaintRecord(category, desc, priority));
+      renderDetailCard();
+    }
+
+    document.getElementById("residentForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const name = document.getElementById("resName").value.trim();
+      const flatNo = document.getElementById("flatNo").value.trim().toUpperCase();
+      const phone = document.getElementById("phone").value.trim();
+      const blockName = document.getElementById("blockName").value.trim();
+      const occupancyType = document.getElementById("occupancyType").value;
+      const monthlyFee = document.getElementById("monthlyFee").value;
+      const paymentStatus = document.getElementById("paymentStatus").value;
+
+      if (app.residents.some(r => r.flatNo === flatNo)) {
+        alert("Flat number already exists. Please enter a unique flat number.");
+        return;
+      }
+
+      const newResident = new Resident(name, phone, flatNo, blockName, occupancyType, monthlyFee, paymentStatus, []);
+      app.addResident(newResident);
+      this.reset();
+
+      const msg = document.getElementById("feedbackMsg");
+      msg.classList.remove("hidden");
+      setTimeout(() => msg.classList.add("hidden"), 2500);
+
+      renderResidentList();
+      renderDetailCard();
+    });
+
+    document.getElementById("searchInput").addEventListener("input", renderResidentList);
+
+    renderResidentList();
+    renderDetailCard();
+  </script>
+</body>
+</html>
